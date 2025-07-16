@@ -1,6 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
+from ..utils.crypto_utils import get_crypto_aware_system_message, get_crypto_aware_analyst_message
 
 
 def create_market_analyst(llm, toolkit):
@@ -21,8 +22,41 @@ def create_market_analyst(llm, toolkit):
                 toolkit.get_stockstats_indicators_report,
             ]
 
-        system_message = (
-            """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
+        # Check if we're analyzing crypto and adjust the system message accordingly
+        crypto_specific_message = get_crypto_aware_analyst_message(ticker, "market")
+        
+        if crypto_specific_message:
+            # Use crypto-specific message
+            system_message = crypto_specific_message + """
+Your role is to select the **most relevant indicators** for cryptocurrency trading from the following list. Choose up to **8 indicators** that work well in 24/7 volatile crypto markets:
+
+Moving Averages (Important for crypto trend identification):
+- close_50_sma: 50 SMA: Medium-term trend for crypto markets. Usage: Key support/resistance in volatile crypto moves.
+- close_200_sma: 200 SMA: Long-term crypto trend benchmark. Usage: Bull/bear market identification.
+- close_10_ema: 10 EMA: Responsive to quick crypto price movements. Usage: Entry/exit signals in fast moves.
+
+MACD (Essential for crypto momentum):
+- macd: MACD: Momentum changes in volatile crypto markets. Usage: Trend change signals.
+- macds: MACD Signal: Crossover signals for crypto trades. Usage: Entry/exit timing.
+- macdh: MACD Histogram: Momentum strength in crypto. Usage: Divergence spotting.
+
+Momentum Indicators (Critical for crypto):
+- rsi: RSI: Overbought/oversold in crypto (often extreme). Usage: Reversal signals with caution.
+
+Volatility Indicators (Crucial for crypto):
+- boll: Bollinger Middle: Dynamic crypto price benchmark. Usage: Trend baseline.
+- boll_ub: Upper Bollinger: Crypto breakout signals. Usage: Resistance levels.
+- boll_lb: Lower Bollinger: Crypto support levels. Usage: Oversold conditions.
+- atr: ATR: Crypto volatility measurement. Usage: Position sizing and stop-loss.
+
+Volume Indicators (Key for crypto validation):
+- vwma: Volume weighted average for crypto liquidity. Usage: Trend confirmation.
+
+Focus on crypto-specific patterns, 24/7 market dynamics, and high-volatility considerations. Call get_YFin_data first, then analyze indicators. Provide detailed crypto market analysis."""
+        else:
+            # Use original stock-focused message
+            system_message = (
+                """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
 
 Moving Averages:
 - close_50_sma: 50 SMA: A medium-term trend indicator. Usage: Identify trend direction and serve as dynamic support/resistance. Tips: It lags price; combine with faster indicators for timely signals.
@@ -47,8 +81,9 @@ Volume-Based Indicators:
 - vwma: VWMA: A moving average weighted by volume. Usage: Confirm trends by integrating price action with volume data. Tips: Watch for skewed results from volume spikes; use in combination with other volume analyses.
 
 - Select indicators that provide diverse and complementary information. Avoid redundancy (e.g., do not select both rsi and stochrsi). Also briefly explain why they are suitable for the given market context. When you tool call, please use the exact name of the indicators provided above as they are defined parameters, otherwise your call will fail. Please make sure to call get_YFin_data first to retrieve the CSV that is needed to generate indicators. Write a very detailed and nuanced report of the trends you observe. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."""
-            + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
-        )
+            )
+        
+        system_message += """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
 
         prompt = ChatPromptTemplate.from_messages(
             [

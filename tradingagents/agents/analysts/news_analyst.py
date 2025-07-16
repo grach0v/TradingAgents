@@ -1,6 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
+from ..utils.crypto_utils import get_crypto_aware_analyst_message
 
 
 def create_news_analyst(llm, toolkit):
@@ -17,10 +16,28 @@ def create_news_analyst(llm, toolkit):
                 toolkit.get_google_news,
             ]
 
-        system_message = (
-            "You are a news researcher tasked with analyzing recent news and trends over the past week. Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. Look at news from EODHD, and finnhub to be comprehensive. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
-            + """ Make sure to append a Makrdown table at the end of the report to organize key points in the report, organized and easy to read."""
-        )
+        # Check if we're analyzing crypto and adjust the system message accordingly
+        crypto_specific_message = get_crypto_aware_analyst_message(ticker, "news")
+        
+        if crypto_specific_message:
+            system_message = crypto_specific_message + """
+            
+Write a comprehensive report analyzing recent crypto and blockchain news and trends. Focus on:
+- Regulatory developments and government crypto announcements
+- Institutional adoption and corporate crypto strategies
+- DeFi protocol news and security incidents
+- Exchange news, listings, and regulatory issues
+- Macroeconomic factors affecting crypto markets
+- Technology upgrades and blockchain developments
+- CBDC developments and central bank policies
+
+Do not simply state the trends are mixed, provide detailed crypto-specific analysis and insights that may help crypto traders make decisions."""
+        else:
+            system_message = (
+                "You are a news researcher tasked with analyzing recent news and trends over the past week. Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. Look at news from EODHD, and finnhub to be comprehensive. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
+            )
+        
+        system_message += """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
 
         prompt = ChatPromptTemplate.from_messages(
             [

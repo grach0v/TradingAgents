@@ -1,6 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
+from ..utils.crypto_utils import get_crypto_aware_analyst_message
 
 
 def create_social_media_analyst(llm, toolkit):
@@ -16,10 +15,27 @@ def create_social_media_analyst(llm, toolkit):
                 toolkit.get_reddit_stock_info,
             ]
 
-        system_message = (
-            "You are a social media and company specific news researcher/analyst tasked with analyzing social media posts, recent company news, and public sentiment for a specific company over the past week. You will be given a company's name your objective is to write a comprehensive long report detailing your analysis, insights, and implications for traders and investors on this company's current state after looking at social media and what people are saying about that company, analyzing sentiment data of what people feel each day about the company, and looking at recent company news. Try to look at all sources possible from social media to sentiment to news. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
-            + """ Make sure to append a Makrdown table at the end of the report to organize key points in the report, organized and easy to read.""",
-        )
+        # Check if we're analyzing crypto and adjust the system message accordingly
+        crypto_specific_message = get_crypto_aware_analyst_message(ticker, "social")
+        
+        if crypto_specific_message:
+            system_message = crypto_specific_message + """
+            
+Write a comprehensive long report analyzing social media sentiment, community engagement, and crypto-specific sentiment drivers. Consider:
+- Crypto Twitter sentiment and KOL opinions
+- Reddit crypto discussions and community health
+- Fear and Greed Index implications
+- Whale activity and on-chain social signals
+- Regulatory news sentiment and market reaction
+- FOMO/FUD cycles and community narratives
+
+Do not simply state the trends are mixed, provide detailed crypto-specific analysis and insights that may help crypto traders make decisions."""
+        else:
+            system_message = (
+                "You are a social media and company specific news researcher/analyst tasked with analyzing social media posts, recent company news, and public sentiment for a specific company over the past week. You will be given a company's name your objective is to write a comprehensive long report detailing your analysis, insights, and implications for traders and investors on this company's current state after looking at social media and what people are saying about that company, analyzing sentiment data of what people feel each day about the company, and looking at recent company news. Try to look at all sources possible from social media to sentiment to news. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
+            )
+        
+        system_message += """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
 
         prompt = ChatPromptTemplate.from_messages(
             [

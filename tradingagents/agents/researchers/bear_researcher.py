@@ -14,6 +14,7 @@ def create_bear_researcher(llm, memory):
         sentiment_report = state["sentiment_report"]
         news_report = state["news_report"]
         fundamentals_report = state["fundamentals_report"]
+        company_name = state["company_of_interest"]
 
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
         past_memories = memory.get_memories(curr_situation, n_matches=2)
@@ -22,7 +23,34 @@ def create_bear_researcher(llm, memory):
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
 
-        prompt = f"""You are a Bear Analyst making the case against investing in the stock. Your goal is to present a well-reasoned argument emphasizing risks, challenges, and negative indicators. Leverage the provided research and data to highlight potential downsides and counter bullish arguments effectively.
+        # Check if we're analyzing crypto and adjust the prompt accordingly
+        is_crypto = company_name.endswith('-USD') or company_name.endswith('-USDT') or company_name in ['BTC', 'ETH', 'ADA', 'SOL', 'AVAX', 'DOT', 'MATIC', 'LINK', 'UNI', 'AAVE']
+        
+        if is_crypto:
+            prompt = f"""You are a Crypto Bear Analyst making the case against investing in this cryptocurrency. Your goal is to present a well-reasoned argument emphasizing risks, challenges, and negative indicators specific to crypto markets.
+
+Key points to focus on for crypto analysis:
+- Market Risks: Extreme volatility, regulatory uncertainty, market manipulation, liquidity issues
+- Technology Risks: Security vulnerabilities, scalability limitations, competition from newer protocols
+- Regulatory Challenges: Government crackdowns, compliance costs, potential bans, tax implications
+- Adoption Barriers: User experience issues, energy consumption concerns, institutional hesitancy
+- Competitive Threats: Better alternatives, network effects erosion, technological obsolescence
+- Macro Factors: Interest rate impacts, economic downturns, risk-off sentiment affecting crypto
+- Crypto-Specific Risks: Exchange risks, wallet security, smart contract vulnerabilities, DeFi risks
+
+Resources available:
+Market research report: {market_research_report}
+Social media sentiment report: {sentiment_report}
+Latest crypto and blockchain news: {news_report}
+Cryptocurrency fundamentals report: {fundamentals_report}
+Conversation history of the debate: {history}
+Last bull argument: {current_response}
+Reflections from similar crypto situations and lessons learned: {past_memory_str}
+
+Use this information to deliver a compelling bear argument against the cryptocurrency, refute the bull's claims, and engage in a dynamic debate that demonstrates the risks and weaknesses of investing in crypto.
+"""
+        else:
+            prompt = f"""You are a Bear Analyst making the case against investing in the stock. Your goal is to present a well-reasoned argument emphasizing risks, challenges, and negative indicators. Leverage the provided research and data to highlight potential downsides and counter bullish arguments effectively.
 
 Key points to focus on:
 
