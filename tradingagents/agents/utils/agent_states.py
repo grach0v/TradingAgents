@@ -5,6 +5,7 @@ from langchain_openai import ChatOpenAI
 from tradingagents.agents import *
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, StateGraph, START, MessagesState
+from .wallet import TradingWallet
 
 
 # Researcher team state
@@ -52,6 +53,9 @@ class AgentState(MessagesState):
     trade_date: Annotated[str, "What date we are trading at"]
 
     sender: Annotated[str, "Agent that sent this message"]
+
+    # wallet state
+    wallet: Annotated[TradingWallet, "Trading wallet with cash and holdings"]
 
     # research step
     market_report: Annotated[str, "Report from the Market Analyst"]

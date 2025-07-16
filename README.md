@@ -51,6 +51,27 @@
 
 TradingAgents is a multi-agent trading framework that mirrors the dynamics of real-world trading firms. By deploying specialized LLM-powered agents: from fundamental analysts, sentiment experts, and technical analysts, to trader, risk management team, the platform collaboratively evaluates market conditions and informs trading decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal strategy.
 
+**🆕 NEW: Wallet Integration & Quantity-Based Trading**
+
+The framework now includes a comprehensive wallet system that:
+- **Manages Real Portfolio**: Tracks cash and cryptocurrency/stock holdings
+- **Quantity-Based Decisions**: Agents now specify exact amounts (e.g., "BUY 0.05 BTC", "SELL 10 NVDA")
+- **Risk Management**: Position sizing based on available funds and portfolio allocation
+- **Trade Execution**: Automatic execution of trades with wallet updates
+- **Portfolio Tracking**: Real-time portfolio visualization and management
+
+Example wallet status:
+```
+💰 Current Portfolio:
+Cash (USD): $50,000.00
+
+Holdings:
+• BTC: 0.100000
+• ETH: 1.000000
+• SOL: 10.000000
+• NVDA: 5.00 shares
+```
+
 <p align="center">
   <img src="assets/schema.png" style="width: 100%; height: auto;">
 </p>
@@ -162,9 +183,13 @@ from tradingagents.default_config import DEFAULT_CONFIG
 
 ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
 
-# forward propagate
-_, decision = ta.propagate("NVDA", "2024-05-10")
-print(decision)
+# forward propagate - now returns comprehensive results
+final_state, result = ta.propagate("NVDA", "2024-05-10")
+
+print(f"Decision: {result['decision']}")  # e.g., "BUY 10 NVDA"
+print(f"Trade Status: {result['trade_executed']}")  # True/False
+print(f"Message: {result['trade_message']}")  # Execution details
+print(f"Portfolio: {result['wallet_summary']}")  # Updated portfolio
 ```
 
 You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
@@ -183,14 +208,82 @@ config["online_tools"] = True # Use online tools or cached data
 # Initialize with custom config
 ta = TradingAgentsGraph(debug=True, config=config)
 
-# forward propagate
-_, decision = ta.propagate("NVDA", "2024-05-10")
-print(decision)
+# forward propagate - now returns comprehensive results
+final_state, result = ta.propagate("NVDA", "2024-05-10")
+
+print(f"Decision: {result['decision']}")  # e.g., "BUY 10 NVDA"
+print(f"Trade Status: {result['trade_executed']}")  # True/False
+print(f"Message: {result['trade_message']}")  # Execution details
+print(f"Portfolio: {result['wallet_summary']}")  # Updated portfolio
 ```
 
 > For `online_tools`, we recommend enabling them for experimentation, as they provide access to real-time data. The agents' offline tools rely on cached data from our **Tauric TradingDB**, a curated dataset we use for backtesting. We're currently in the process of refining this dataset, and we plan to release it soon alongside our upcoming projects. Stay tuned!
 
 You can view the full list of configurations in `tradingagents/default_config.py`.
+
+## Wallet Management
+
+The new wallet system allows you to manage your trading portfolio with precise control over cash and asset holdings.
+
+### Using the Wallet Manager
+
+```bash
+# Check current wallet status
+python wallet_manager.py status
+
+# Reset wallet to initial state
+python wallet_manager.py reset
+
+# Add cash to wallet
+python wallet_manager.py add-cash 10000
+
+# Add cryptocurrency to wallet
+python wallet_manager.py add-crypto BTC 0.1
+
+# Simulate a trade without executing it
+python wallet_manager.py simulate 'BUY 0.05 BTC'
+```
+
+### Wallet Integration in Code
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+# Initialize trading system with wallet
+ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
+
+# Run analysis - returns comprehensive result including wallet changes
+final_state, result = ta.propagate("BTC-USD", "2024-05-10")
+
+print(f"Decision: {result['decision']}")  # e.g., "BUY 0.05 BTC"
+print(f"Trade Status: {result['trade_executed']}")  # True/False
+print(f"Message: {result['trade_message']}")  # Execution details
+print(f"Portfolio: {result['wallet_summary']}")  # Updated portfolio
+```
+
+### Quantity-Based Trading Decisions
+
+Agents now make specific quantity decisions instead of generic buy/sell signals:
+
+**Before**: `BUY`, `SELL`, `HOLD`
+**Now**: `BUY 0.05 BTC`, `SELL 10 NVDA`, `HOLD`
+
+This enables:
+- **Precise position sizing** based on available funds
+- **Risk management** through calculated exposure limits
+- **Portfolio diversification** across multiple assets
+- **Real-time trade execution** with automatic wallet updates
+
+### Demo Script
+
+Try the wallet functionality with the demo script:
+
+```bash
+python wallet_demo.py
+```
+
+This will show wallet-based trading across different assets (BTC, ETH, NVDA) with live portfolio updates.
 
 ## Contributing
 

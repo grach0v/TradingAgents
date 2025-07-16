@@ -13,9 +13,22 @@ config["online_tools"] = True  # Increase debate rounds
 # Initialize with custom config
 ta = TradingAgentsGraph(debug=True, config=config)
 
-# forward propagate
-_, decision = ta.propagate("NVDA", "2024-05-10")
-print(decision)
+# Forward propagate with new wallet-based trading
+print("🚀 Starting Trading Analysis with Wallet Integration...\n")
+
+final_state, result = ta.propagate("NVDA", "2024-05-10")
+
+print("\n" + "="*60)
+print("📊 TRADING RESULTS")
+print("="*60)
+print(f"Decision: {result['decision']}")
+print(f"Trade Status: {'✅ Executed' if result['trade_executed'] else '❌ Failed'}")
+print(f"Message: {result['trade_message']}")
+print("\n" + result['wallet_summary'])
+print("\n" + "="*60)
+print("📈 FULL ANALYSIS")
+print("="*60)
+print(result['full_analysis'])
 
 # Memorize mistakes and reflect
 # ta.reflect_and_remember(1000) # parameter is the position returns

@@ -12,18 +12,31 @@ class SignalProcessor:
 
     def process_signal(self, full_signal: str) -> str:
         """
-        Process a full trading signal to extract the core decision.
+        Process a full trading signal to extract the core decision with quantities.
 
         Args:
             full_signal: Complete trading signal text
 
         Returns:
-            Extracted decision (BUY, SELL, or HOLD)
+            Extracted decision (e.g., "BUY 0.05 BTC", "SELL 10 NVDA", "HOLD")
         """
         messages = [
             (
                 "system",
-                "You are an efficient assistant designed to analyze paragraphs or financial reports provided by a group of analysts. Your task is to extract the investment decision: SELL, BUY, or HOLD. Provide only the extracted decision (SELL, BUY, or HOLD) as your output, without adding any additional text or information.",
+                """You are an efficient assistant designed to analyze trading decisions from financial reports. Your task is to extract the investment decision with exact quantities when specified.
+
+Extract the decision in one of these formats:
+- "BUY X.XXX SYMBOL" (for purchases with specific amounts)
+- "SELL X.XXX SYMBOL" (for sales with specific amounts)  
+- "HOLD" (for maintaining current position)
+
+Examples:
+- "BUY 0.05 BTC"
+- "SELL 10 NVDA"
+- "BUY 25 TSLA"
+- "HOLD"
+
+If no specific quantity is mentioned, extract just the action (BUY, SELL, or HOLD). Provide only the extracted decision as your output, without adding any additional text or information.""",
             ),
             ("human", full_signal),
         ]

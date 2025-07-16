@@ -27,6 +27,7 @@ from .setup import GraphSetup
 from .propagation import Propagator
 from .reflection import Reflector
 from .signal_processing import SignalProcessor
+from ..agents.utils.trade_executor import TradeExecutor
 
 
 class TradingAgentsGraph:
@@ -186,8 +187,24 @@ class TradingAgentsGraph:
         # Log state
         self._log_state(trade_date, final_state)
 
-        # Return decision and processed signal
-        return final_state, self.process_signal(final_state["final_trade_decision"])
+        # Process the trading decision
+        processed_decision = self.process_signal(final_state["final_trade_decision"])
+        
+        # Execute the trade
+        trade_executor = TradeExecutor(final_state["wallet"])
+        trade_success, trade_message = trade_executor.execute_trade(processed_decision, trade_date)
+        
+        # Create comprehensive result
+        result = {
+            "decision": processed_decision,
+            "trade_executed": trade_success,
+            "trade_message": trade_message,
+            "wallet_summary": final_state["wallet"].get_portfolio_summary(),
+            "full_analysis": final_state["final_trade_decision"]
+        }
+
+        # Return decision and comprehensive result
+        return final_state, result
 
     def _log_state(self, trade_date, final_state):
         """Log the final state to a JSON file."""
