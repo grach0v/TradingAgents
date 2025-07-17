@@ -1,10 +1,10 @@
 {
-  "cash_usd": 59550.0,
+  "cash_usd": 57075.0,
   "crypto_holdings": {
-    "BTC": 0.11,
+    "BTC": 0.165,
     "ETH": 0.5,
     "SOL": 15.0,
     "NVDA": 7.0
   },
-  "last_updated": "2025-07-16T23:37:37.042389"
+  "last_updated": "2025-07-17T00:00:09.130362"
 }
